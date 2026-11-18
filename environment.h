@@ -1,0 +1,23 @@
+#ifndef ENVIRONMENT_H
+#define ENVIRONMENT_H
+
+// Environment variables
+typedef struct {
+    char *name;
+    char *value;
+    bool ro;
+    bool export;
+    bool protected;
+} ShVar;
+extern ShVar *shell_vars;
+
+// Exported environment variables
+extern char **environ;
+
+ShVar *sh_var_get(const char *name);
+int sh_var_set(const char *name, const char *value);
+int sh_var_protect(char *name);
+int sh_vars_populate();
+void sh_vars_init();
+
+#endif
