@@ -2,16 +2,16 @@
 #define EMSH_H
 
 // Flags
-typedef struct {
+struct FlagRegister {
     bool exit;
     bool failure;
-} FlagRegister;
-extern FlagRegister flag;
+};
+extern struct FlagRegister flag;
 
 // Options
-typedef struct {
+struct ShellOpts {
     bool vi;
-} ShellOpts;
-extern ShellOpts option;
+};
+extern struct ShellOpts option;
 
 #endif

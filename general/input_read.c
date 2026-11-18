@@ -20,20 +20,20 @@
 #include "../emgc.h"
 
 // Struct for holding cursor information
-typedef struct {
+struct Cursor {
     unsigned int row;
     unsigned int row_tot;
     unsigned short col;
     unsigned short col_home;
     unsigned int index;
-} Cursor;
+};
 // Struct for holding input buffer and related information
-typedef struct {
+struct InBuf {
     char *buf;
     unsigned int buf_size;
     unsigned int buf_len;
     unsigned int no_chars;
-} InBuf;
+};
 
 // Globals
 const char *PS1;
@@ -80,7 +80,7 @@ int escape_sequence_parse(char *seq){
 
 // Local  
 // Clear row, write s to screen, move cursor back curs_offset steps
-void stdin_reprint(InBuf *input, Cursor *cursor){
+void stdin_reprint(struct InBuf *input, struct Cursor *cursor){
     curs_home();
     erase_scrfw();
     fprintf(stderr, "%s", input->buf);
@@ -132,7 +132,7 @@ void terminal_restore(const struct termios *term_info){
 // Local  
 // Get cursor position  
 // Updates col in cursor, returns row
-unsigned int cursor_get_pos(Cursor *cursor, unsigned short term_w){
+unsigned int cursor_get_pos(struct Cursor *cursor, unsigned short term_w){
     if (term_w == 0){
         cursor->row = 0;
         return 0;
@@ -179,7 +179,7 @@ unsigned int cursor_get_pos(Cursor *cursor, unsigned short term_w){
 
 // Local
 // Handler for when the terminal is resized
-void terminal_resize_react(struct winsize *term, Cursor * cursor, InBuf *input){
+void terminal_resize_react(struct winsize *term, struct Cursor * cursor, struct InBuf *input){
     if (term->ws_row == 0 || cursor->row == 0){
         flag.failure = true;
         return;
@@ -260,7 +260,7 @@ char **input_read_vi(char **in_v, int *in_c){
     terminal_signal_set();
 
     // Init
-    InBuf input = {.buf_size = 64, .buf_len = 0, .no_chars = 0, .buf = nullptr};
+    struct InBuf input = {.buf_size = 64, .buf_len = 0, .no_chars = 0, .buf = nullptr};
     input.buf = gc_malloc('l', input.buf_size * sizeof(char));
     input.buf[0] = '\0';
     struct winsize term;
@@ -271,7 +271,7 @@ char **input_read_vi(char **in_v, int *in_c){
     if (PS1){
         fprintf(stderr, "%s", PS1);
     }
-    Cursor cursor = {.col = 0, .col_home = 0, .index = 0, .row = 1, .row_tot = 1};
+    struct Cursor cursor = {.col = 0, .col_home = 0, .index = 0, .row = 1, .row_tot = 1};
     (void) cursor_get_pos(&cursor, term.ws_col);
     if (cursor.row == 0){
         flag.failure = true;
@@ -490,7 +490,7 @@ char **input_read_vi(char **in_v, int *in_c){
                 cursor.col -= term.ws_col;
                 if (cursor.row > cursor.row_tot){
                     cursor.row_tot++;
-                    Cursor curs_temp = {0};
+                    struct Cursor curs_temp = {0};
                     unsigned int row_real = cursor_get_pos(&curs_temp, term.ws_col);
                     if (cursor.col == 1){
                         fprintf(stderr, "\n");
@@ -530,7 +530,7 @@ char **input_read_vi(char **in_v, int *in_c){
 
 char **input_read(char **in_v, int *in_c){ // "Main" function
     // TODO: add SIGINT handling
-    ShVar *sh_var_tmp = sh_var_get("PS1");
+    struct ShVar *sh_var_tmp = sh_var_get("PS1");
     if (sh_var_tmp){
         PS1 = string_copy(sh_var_tmp->value, 'l');
     }

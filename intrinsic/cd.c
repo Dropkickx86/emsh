@@ -17,7 +17,7 @@ bool opt_e = false;
 char opt = 'L';
 
 // Global pointers/vars
-const ShVar *pwd;
+const struct ShVar *pwd;
 bool print_pwd;
 
 // Local  
@@ -52,7 +52,7 @@ char *arg_resolve(int in_c, char **in_v){
         }
     }
     if (!arg_path){
-        const ShVar *const home = sh_var_get("HOME");
+        const struct ShVar *const home = sh_var_get("HOME");
         if (!home){
             fprintf(stderr, "emsh: cd: directory not specified\n");
             return nullptr;
@@ -60,7 +60,7 @@ char *arg_resolve(int in_c, char **in_v){
         arg_path = string_copy(home->value, 'l');
     }
     else if (strcmp(arg_path, "-") == 0){
-        const ShVar *const oldpwd = sh_var_get("OLDPWD");
+        const struct ShVar *const oldpwd = sh_var_get("OLDPWD");
         if (!oldpwd){
             fprintf(stderr, "emsh: cd: OLDPWD not set\n");
             return nullptr;
@@ -86,7 +86,7 @@ char *arg_resolve(int in_c, char **in_v){
 // Local  
 // Validate PWD and set global pwd if valid
 bool pwd_validate(){
-    ShVar *tmp_pwd = sh_var_get("PWD");
+    struct ShVar *tmp_pwd = sh_var_get("PWD");
     char *cwd = gc_malloc('l', 16 * sizeof(char));
     do {
         cwd = gc_realloc(cwd, gc_get_alloc_size(cwd) * 2);
@@ -153,7 +153,7 @@ bool pwd_validate(){
 // Print value of curpath to stdout  
 // If curpath is nullptr, PWD is printed instead
 void pwd_print(){
-    const ShVar *const pwd_local = sh_var_get("PWD");
+    const struct ShVar *const pwd_local = sh_var_get("PWD");
     if (!pwd_local){
         return;
     }
@@ -166,7 +166,7 @@ void pwd_print(){
 // Local  
 // Update value of PWD and OLDPWD
 int pwd_update(char *path){
-    const ShVar *const oldpwd = sh_var_get("PWD");
+    const struct ShVar *const oldpwd = sh_var_get("PWD");
     char *oldpwd_value = nullptr;
     if (oldpwd){
         oldpwd_value = string_copy(oldpwd->value, 'l');
@@ -231,7 +231,7 @@ char *dotslash_test(char *arg_path){
 // Check if dir is present in cdpath or ./
 char *cdpath_resolve(char *arg_path){
     char *tmp = nullptr;
-    const ShVar *const cdpath = sh_var_get("CDPATH");
+    const struct ShVar *const cdpath = sh_var_get("CDPATH");
     if (cdpath && strlen(cdpath->value) > 0){
         if (cdpath->value[0] == ':'){
             tmp = dotslash_test(arg_path);

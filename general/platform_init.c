@@ -5,10 +5,10 @@
 #include "../environment.h"
 
 // Internal flags
-FlagRegister flag = {};
+struct FlagRegister flag = {};
 
 // Options
-ShellOpts option = {};
+struct ShellOpts option = {};
 
 int platform_init(){ // "Main" function
     sh_vars_populate();

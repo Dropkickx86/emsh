@@ -12,9 +12,9 @@
 #include "emgc.h"
 #include "helpers.h"
 
-ShVar *shell_vars;
+struct ShVar *shell_vars;
 
-ShVar *sh_var_get(const char *name){
+struct ShVar *sh_var_get(const char *name){
     for (int i = 0; strlen(shell_vars[i].name) > 0; i++){
         if (strcmp(name, shell_vars[i].name) == 0){
             return &shell_vars[i];
@@ -24,7 +24,7 @@ ShVar *sh_var_get(const char *name){
 }
 
 int sh_var_set(const char *name, const char *value){
-    ShVar *var_cur = sh_var_get(name);
+    struct ShVar *var_cur = sh_var_get(name);
     if (var_cur && var_cur->ro){
         fprintf(stderr, "emsh: %s: variable is read only", name);
         return -1;
@@ -32,7 +32,7 @@ int sh_var_set(const char *name, const char *value){
     if (!var_cur){
         int index = -1;
         while (strlen(shell_vars[++index].name) > 0);
-        if ((unsigned int) index == (gc_get_alloc_size(shell_vars) / sizeof(ShVar)) - 1){
+        if ((unsigned int) index == (gc_get_alloc_size(shell_vars) / sizeof(struct ShVar)) - 1){
             shell_vars = gc_realloc(shell_vars, gc_get_alloc_size(shell_vars) * 2);
         }
         shell_vars[index + 1].name = "";
@@ -50,7 +50,7 @@ int sh_var_set(const char *name, const char *value){
 
 int sh_vars_populate(){
     if (!shell_vars){
-        shell_vars = gc_malloc('p', 32 * sizeof(ShVar));
+        shell_vars = gc_malloc('p', 32 * sizeof(struct ShVar));
         shell_vars[0].name = "";
     }
     if (!environ){
@@ -81,7 +81,7 @@ int sh_vars_populate(){
             continue;
         }
         // Save variable
-        if ((unsigned int) index == (gc_get_alloc_size(shell_vars) / sizeof(ShVar)) - 1){
+        if ((unsigned int) index == (gc_get_alloc_size(shell_vars) / sizeof(struct ShVar)) - 1){
             shell_vars = gc_realloc(shell_vars, gc_get_alloc_size(shell_vars) * 2);
         }
         shell_vars[index].name = string_copy(name_val[0], 'p');
@@ -97,7 +97,7 @@ int sh_vars_populate(){
 void sh_vars_init(){
     // Create shell_vars if nonexistent
     if (!shell_vars){
-        shell_vars = gc_malloc('p', 32 * sizeof(ShVar));
+        shell_vars = gc_malloc('p', 32 * sizeof(struct ShVar));
         shell_vars[0].name = "";
     }
     // PPID fill
@@ -123,7 +123,7 @@ void sh_vars_init(){
         errno = 0;
         cwd = getcwd(cwd, gc_get_alloc_size(cwd));
     } while (!cwd && errno == ERANGE);
-    ShVar *pwd = sh_var_get("PWD");
+    struct ShVar *pwd = sh_var_get("PWD");
     if (!cwd){
         fprintf(stderr, "emsh: could not get cwd\nvalue of PWD is not verified\n");
     }
