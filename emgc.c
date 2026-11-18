@@ -5,14 +5,14 @@
 #include <sys/cdefs.h>
 #include "emgc.h"
 
-typedef struct {
+struct AllocArray {
     void **ptr_array;
     unsigned int *size_array;
     unsigned int cursor;
     unsigned int size;
-} AllocArray;
+};
 
-static AllocArray *scope_array = NULL;
+static struct AllocArray *scope_array = NULL;
 static unsigned char *scopes = NULL;
 static int no_scopes = 0;
 
@@ -23,7 +23,7 @@ static int null_init = 0;
 int gc_construct(unsigned char scope){
     // Init if first construct
     if (!scope_array){
-        scope_array = (AllocArray*) malloc(sizeof(AllocArray) * 256);
+        scope_array = (struct AllocArray*) malloc(sizeof(struct AllocArray) * 256);
         if (scopes){
             free(scopes);
         }
@@ -106,7 +106,7 @@ void *gc_malloc(unsigned char scope, size_t size){
         return NULL;
     }
     // Check that scope allocation is not full
-    AllocArray *scope_cur = &scope_array[scope];
+    struct AllocArray *scope_cur = &scope_array[scope];
     if (scope_cur->cursor == scope_cur->size){
         if (scope_cur->size == UINT_MAX){
             fprintf(stderr, "emgc: %c: scope at max size\n", scope);
@@ -172,7 +172,7 @@ void *gc_calloc(unsigned char scope, size_t nmemb, size_t size){
         return NULL;
     }
     // Check that scope allocation is not full
-    AllocArray *scope_cur = &scope_array[scope];
+    struct AllocArray *scope_cur = &scope_array[scope];
     if (scope_cur->cursor == scope_cur->size){
         if (scope_cur->size == UINT_MAX){
             fprintf(stderr, "emgc: %c: scope at max size\n", scope);
@@ -244,7 +244,7 @@ void *gc_realloc(void *ptr, size_t size){
         return NULL;
     }
     // Find ptr
-    AllocArray *scope_cur = NULL;
+    struct AllocArray *scope_cur = NULL;
     unsigned int ptr_cursor;
     for (int i = 0; scopes[i] != '\0'; i++){
         for (unsigned int j = 0; j < scope_array[scopes[i]].cursor; j++){
