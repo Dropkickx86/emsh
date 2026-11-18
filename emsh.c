@@ -3,7 +3,6 @@
 // Includes system
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 
@@ -25,9 +24,6 @@ void exit_handler();
 // Initialize loop  
 // Returns 0 on success, -1 on failure
 int init_loop(){
-    if (shell_var_short.PS1){
-        fprintf(stderr, "%s", shell_var_short.PS1);
-    }
     return 0;
 }
 

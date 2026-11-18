@@ -10,9 +10,6 @@ FlagRegister flag = {};
 // Options
 ShellOpts option = {};
 
-// Shell variables
-ShVarsShortcut shell_var_short = {};
-
 int platform_init(){ // "Main" function
     sh_vars_populate();
     sh_vars_init();

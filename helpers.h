@@ -20,10 +20,6 @@
 // Print up to n characters from src to stream  
 // Returns number of bytes printed
 int file_number_print(FILE *restrict stream, const size_t n, char *restrict const src);
-// Get ponter to shell variable value  
-// Creates shell variable "name=" if not found and returns pointer to empty value  
-// Returns pointer to value on success and nullptr on failure
-char *sh_var_ptr_link(char *var);
 // Insert n characters from src into dest at index  
 // Termination inserts null terminator into dest at index + n  
 // Returns dest on success and nullptr on failure  

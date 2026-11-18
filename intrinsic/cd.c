@@ -102,7 +102,6 @@ bool pwd_validate(){
             fprintf(stderr, "emsh: cd: PWD unset, could not be created\n");
             return false;
         }
-        sh_var_protect("PWD");
         pwd = sh_var_get("PWD");
         fprintf(stderr, "emsh: cd: PWD unset, set to current physical path\n");
         return true;

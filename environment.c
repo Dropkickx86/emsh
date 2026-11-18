@@ -8,7 +8,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "emsh.h"
 #include "environment.h"
 #include "emgc.h"
 #include "helpers.h"
@@ -41,21 +40,11 @@ int sh_var_set(const char *name, const char *value){
         var_cur->name = string_copy(name, 'p');
         var_cur->export = false;
         var_cur->ro = false;
-        var_cur->protected = false;
     }
     var_cur->value = string_insert(var_cur->value, value, 0, strlen(value), true, 'p');
     if (var_cur->export){
         setenv(name, value, 1);
     }
-    return 0;
-}
-
-int sh_var_protect(char *name){
-    ShVar *tmp = sh_var_get(name);
-    if (!tmp){
-        return -1;
-    }
-    tmp->protected = true;
     return 0;
 }
 
@@ -99,7 +88,6 @@ int sh_vars_populate(){
         shell_vars[index].value = string_copy(name_val[1], 'p');
         shell_vars[index].export = true;
         shell_vars[index].ro = false;
-        shell_vars[index].protected = false;
         index++;
     }
     shell_vars[index].name = "";
@@ -112,56 +100,12 @@ void sh_vars_init(){
         shell_vars = gc_malloc('p', 32 * sizeof(ShVar));
         shell_vars[0].name = "";
     }
-    // Link short options for future use
-    if ((shell_var_short.ENV = sh_var_ptr_link("ENV"))){
-        sh_var_protect("ENV");
-    }
-    if ((shell_var_short.HOME = sh_var_ptr_link("HOME"))){
-        sh_var_protect("HOME");
-    }
-    if ((shell_var_short.LANG = sh_var_ptr_link("LANG"))){
-        sh_var_protect("LANG");
-    }
-    if ((shell_var_short.LC_ALL = sh_var_ptr_link("LC_ALL"))){
-        sh_var_protect("LC_ALL");
-    }
-    if ((shell_var_short.LC_COLLATE = sh_var_ptr_link("LC_COLLATE"))){
-        sh_var_protect("LC_COLLATE");
-    }
-    if ((shell_var_short.LC_CTYPE = sh_var_ptr_link("LC_CTYPE"))){
-        sh_var_protect("LC_CTYPE");
-    }
-    if ((shell_var_short.LC_MESSAGES = sh_var_ptr_link("LC_MESSAGES"))){
-        sh_var_protect("LC_MESSAGES");
-    }
-    if ((shell_var_short.NLSPATH = sh_var_ptr_link("NLSPATH"))){
-        sh_var_protect("NLSPATH");
-    }
-    if ((shell_var_short.PATH = sh_var_ptr_link("PATH"))){
-        sh_var_protect("PATH");
-    }
-    // IFS fill
-    if (sh_var_set("IFS", " \t\n") == 0){
-        if ((shell_var_short.IFS = sh_var_ptr_link("IFS"))){
-            sh_var_protect("IFS");
-        }
-    }
-    // LINENO init
-    if (sh_var_set("LINENO", "") == 0){
-        if ((shell_var_short.LINENO = sh_var_ptr_link("LINENO"))){
-            sh_var_protect("LINENO");
-        }
-    }
     // PPID fill
     pid_t ppid = getppid();
     char *s_ppid = gc_malloc('i', (int)((ceil(log10(ppid))+1)*sizeof(char)));
     sprintf(s_ppid, "%d", ppid);
-    if (sh_var_set("PPID", s_ppid) == 0){
-        if ((shell_var_short.PPID = sh_var_ptr_link("PPID"))){
-            sh_var_protect("PPID");
-        }
-    }
-    // PS1 fill
+    sh_var_set("PPID", s_ppid);
+    // PS1-PS4 fill
     char *tmp;
     if (geteuid() == 0){
         tmp = string_copy("# ", 'p');
@@ -169,23 +113,9 @@ void sh_vars_init(){
     else {
         tmp = string_copy("$ ", 'p');
     }
-    if (sh_var_set("PS1", tmp) == 0){
-        if ((shell_var_short.PS1 = sh_var_ptr_link("PS1"))){
-            sh_var_protect("PS1");
-        }
-    }
-    // PS2 fill
-    if (sh_var_set("PS2", "> ") == 0){
-        if ((shell_var_short.PS2 = sh_var_ptr_link("PS2"))){
-            sh_var_protect("PS2");
-        }
-    }
-    // PS4 fill
-    if (sh_var_set("PS4", "+ ") == 0){
-        if ((shell_var_short.PS4 = sh_var_ptr_link("PS4"))){
-            sh_var_protect("PS4");
-        }
-    }
+    sh_var_set("PS1", tmp);
+    sh_var_set("PS2", "> ");
+    sh_var_set("PS4", "+ ");
     // PWD fill/validate
     char *cwd = gc_malloc('i', 16 * sizeof(char));
     do {
@@ -193,24 +123,22 @@ void sh_vars_init(){
         errno = 0;
         cwd = getcwd(cwd, gc_get_alloc_size(cwd));
     } while (!cwd && errno == ERANGE);
-    shell_var_short.PWD = sh_var_ptr_link("PWD");
+    ShVar *pwd = sh_var_get("PWD");
     if (!cwd){
         fprintf(stderr, "emsh: could not get cwd\nvalue of PWD is not verified\n");
     }
-    else if (shell_var_short.PWD && strlen(shell_var_short.PWD) == 0){
+    else if (pwd && strlen(pwd->value) == 0){
         sh_var_set("PWD", cwd);
-        sh_var_protect("PWD");
     }
-    else if (shell_var_short.PWD){
-        sh_var_protect("PWD");
+    else if (pwd){
         bool invalid = false;
-        if (shell_var_short.PWD[0] != '/' || strlen(shell_var_short.PWD) > PATH_MAX){
+        if (pwd->value[0] != '/' || strlen(pwd->value) > PATH_MAX){
             invalid = true;
         }
         if (!invalid){
-            for (int i = 0; i < (int)strlen(shell_var_short.PWD); i++){
-                if (shell_var_short.PWD[i] == '.' && shell_var_short.PWD[i + 1] == '/'){
-                    if ((shell_var_short.PWD[i - 1] == '.' && shell_var_short.PWD[i - 2] == '/') || shell_var_short.PWD[i - 1] == '/'){
+            for (int i = 0; i < (int)strlen(pwd->value); i++){
+                if (pwd->value[i] == '.' && pwd->value[i + 1] == '/'){
+                    if ((pwd->value[i - 1] == '.' && pwd->value[i - 2] == '/') || pwd->value[i - 1] == '/'){
                         invalid = true;
                         break;
                     }
@@ -222,7 +150,7 @@ void sh_vars_init(){
             if (stat(cwd, &s_cwd) == -1){
                 fprintf(stderr, "emsh: could not stat cwd\nvalue of PWD is not verified\n");
             }
-            else if (stat(shell_var_short.PWD, &s_pwd) == -1){
+            else if (stat(pwd->value, &s_pwd) == -1){
                 fprintf(stderr, "emsh: could not stat PWD\nvalue of PWD is not verified\n");
             }
             else if (s_cwd.st_dev != s_pwd.st_dev || s_cwd.st_ino != s_pwd.st_ino){

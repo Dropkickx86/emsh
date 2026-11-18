@@ -15,6 +15,7 @@
 
 #include "general.h"
 #include "../emsh.h"
+#include "../environment.h"
 #include "../helpers.h"
 #include "../emgc.h"
 
@@ -33,6 +34,11 @@ typedef struct {
     unsigned int buf_len;
     unsigned int no_chars;
 } InBuf;
+
+// Globals
+const char *PS1;
+const char *PS2;
+const char *IFS;
 
 // Local  
 // Returns terminal width in number of columns
@@ -132,7 +138,7 @@ unsigned int cursor_get_pos(Cursor *cursor, unsigned short term_w){
         return 0;
     }
     if (term_w < cursor->col_home || cursor->col_home == 0){
-        short temp_col = strlen(shell_var_short.PS1) + 1;
+        short temp_col = strlen(PS1) + 1;
         while (temp_col > term_w){
             temp_col -= term_w;
         }
@@ -261,6 +267,9 @@ char **input_read_vi(char **in_v, int *in_c){
     terminal_get_size(&term);
     if (term.ws_row == 0){
         flag.failure = true;
+    }
+    if (PS1){
+        fprintf(stderr, "%s", PS1);
     }
     Cursor cursor = {.col = 0, .col_home = 0, .index = 0, .row = 1, .row_tot = 1};
     (void) cursor_get_pos(&cursor, term.ws_col);
@@ -509,19 +518,39 @@ char **input_read_vi(char **in_v, int *in_c){
     if (flag.failure){
         return nullptr;
     }
-    in_v = string_tokenize(in_v, in_c, input.buf, " ", 'l');
+    if (IFS){
+        in_v = string_tokenize(in_v, in_c, input.buf, IFS, 'l');
+    }
+    else {
+        in_v = string_tokenize(in_v, in_c, input.buf, " \t\n", 'l');
+    }
     in_v[*in_c] = nullptr;
     return in_v;
 }
 
 char **input_read(char **in_v, int *in_c){ // "Main" function
     // TODO: add SIGINT handling
+    ShVar *sh_var_tmp = sh_var_get("PS1");
+    if (sh_var_tmp){
+        PS1 = string_copy(sh_var_tmp->value, 'l');
+    }
+    sh_var_tmp = sh_var_get("PS2");
+    if (sh_var_tmp){
+        PS2 = string_copy(sh_var_tmp->value, 'l');
+    }
+    sh_var_tmp = sh_var_get("IFS");
+    if (sh_var_tmp){
+        IFS = string_copy(sh_var_tmp->value, 'l');
+    }
     if (option.vi){
         return input_read_vi(in_v, in_c);
     }
     char *input = gc_malloc('l', 64 * sizeof(char));
     input[0] = '\0';
     char tmp[64];
+    if (PS1){
+        fprintf(stderr, "%s", PS1);
+    }
     do {
         fgets(tmp, 64, stdin);
         input = string_concat(input, tmp, 'l');
@@ -533,5 +562,12 @@ char **input_read(char **in_v, int *in_c){ // "Main" function
     while(input[strlen(input) - 1] == '\n' || input[strlen(input) - 1] == '\r' || input[strlen(input) - 1] == EOF){
         input[strlen(input) - 1] = '\0';
     }
-    return string_tokenize(in_v, in_c, input, " ", 'l');
+    if (IFS){
+        in_v = string_tokenize(in_v, in_c, input, IFS, 'l');
+    }
+    else {
+        in_v = string_tokenize(in_v, in_c, input, " \t\n", 'l');
+    }
+    in_v[*in_c] = nullptr;
+    return in_v;
 }

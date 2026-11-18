@@ -5,7 +5,6 @@
 
 #include "helpers.h"
 #include "emgc.h"
-#include "environment.h"
 
 int file_number_print(FILE *restrict stream, const size_t n, char *restrict const src){
     const char index_char = src[n];
@@ -13,17 +12,6 @@ int file_number_print(FILE *restrict stream, const size_t n, char *restrict cons
     int b_written = fprintf(stream, "%s", src);
     src[n] = index_char;
     return b_written;
-}
-
-char *sh_var_ptr_link(char *var){
-    ShVar *tmp = sh_var_get(var);
-    if (!tmp){
-        sh_var_set(var, "");
-        if (!(tmp = sh_var_get(var))){
-            return nullptr;
-        }
-    }
-    return tmp->value;
 }
 
 char *string_insert(char *restrict dest, const char *restrict src, const int index, const size_t n, const bool termination, unsigned char scope){
