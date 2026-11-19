@@ -8,8 +8,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <emgc.h>
+
 #include "environment.h"
-#include "emgc.h"
 #include "helpers.h"
 
 struct ShVar *shell_vars;

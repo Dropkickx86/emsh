@@ -12,12 +12,12 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
+#include <emgc.h>
 
 #include "general.h"
 #include "../emsh.h"
 #include "../environment.h"
 #include "../helpers.h"
-#include "../emgc.h"
 
 // Struct for holding cursor information
 struct Cursor {

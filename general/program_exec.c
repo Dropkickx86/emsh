@@ -5,10 +5,11 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
+#include <emgc.h>
+
 #include "general.h"
 #include "../emsh.h"
 #include "../helpers.h"
-#include "../emgc.h"
 #include "../intrinsic/intrinsic.h"
 
 int temp_exit_function(int argc, char **argv){

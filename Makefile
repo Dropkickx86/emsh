@@ -6,8 +6,8 @@ OBJ = emsh.o helpers.o emgc.o environment.o
 GENERAL_SRC = input_read.c platform_init.c program_exec.c
 GENERAL_OBJ = general/input_read.o general/platform_init.o general/program_exec.o
 
-INTRINSIC_SRC = dir_change.c
-INTRINSIC_OBJ = intrinsic/dir_change.o
+INTRINSIC_SRC = cd.c
+INTRINSIC_OBJ = intrinsic/cd.o
 
 all: emsh
 

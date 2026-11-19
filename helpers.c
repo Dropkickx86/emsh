@@ -3,8 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <emgc.h>
+
 #include "helpers.h"
-#include "emgc.h"
 
 int file_number_print(FILE *restrict stream, const size_t n, char *restrict const src){
     const char index_char = src[n];

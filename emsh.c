@@ -6,9 +6,10 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
+#include <emgc.h>
+
 // Includes local
 #include "emsh.h"
-#include "emgc.h"
 #include "general/general.h"
 
 // Enums

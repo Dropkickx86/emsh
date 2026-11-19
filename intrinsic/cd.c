@@ -7,10 +7,11 @@
 #include <linux/limits.h>
 #include <sys/stat.h>
 
+#include <emgc.h>
+
 #include "intrinsic.h"
 #include "../environment.h"
 #include "../helpers.h"
-#include "../emgc.h"
 
 // Option flags
 bool opt_e = false;
