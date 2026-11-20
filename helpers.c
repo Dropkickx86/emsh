@@ -7,7 +7,7 @@
 
 #include "helpers.h"
 
-int file_number_print(FILE *restrict stream, const size_t n, char *restrict const src){
+size_t file_number_print(FILE *restrict stream, const size_t n, char *restrict const src){
     const char index_char = src[n];
     src[n] = '\0';
     int b_written = fprintf(stream, "%s", src);
@@ -79,9 +79,13 @@ char *string_concat(char *dest, const char *const src, unsigned char scope){
 }
 
 char **string_tokenize(char **output, int *out_c, const char *const input, const char *ifs, unsigned char scope){
+    if (!output || !out_c || !input || !ifs){
+        fprintf(stderr, "emsh: missing information for tokenization");
+        return nullptr;
+    }
     int cursor = 0;
     int ss_start = 0;
-    unsigned int in_c = 0;
+    *out_c = 0;
     do {
         char delimiter = 0;
         for (int i = 0; ifs[i] != '\0'; i++){
@@ -95,14 +99,16 @@ char **string_tokenize(char **output, int *out_c, const char *const input, const
                 ss_start = cursor + 1;
                 continue;
             }
-            if ((gc_get_alloc_size(output) / sizeof(char*)) == in_c){
-                output = gc_realloc(output, (in_c * 2) * sizeof(char*));
+            if ((gc_get_alloc_size(output) / sizeof(char*)) == *out_c){
+                output = gc_realloc(output, (*out_c * 2) * sizeof(char*));
             }
-            output[in_c] = string_insert(output[in_c], input + ss_start, 0, cursor - ss_start, true, scope);
-            in_c++;
+            output[*out_c] = string_insert(output[*out_c], input + ss_start, 0, cursor - ss_start, true, scope);
+            if (!output[*out_c]){
+                return nullptr;
+            }
+            (*out_c)++;
             ss_start = cursor + 1;
         }
     } while (input[cursor++] != '\0');
-    *out_c = in_c;
     return output;
 }

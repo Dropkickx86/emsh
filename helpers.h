@@ -19,7 +19,7 @@
 
 // Print up to n characters from src to stream  
 // Returns number of bytes printed
-int file_number_print(FILE *restrict stream, const size_t n, char *restrict const src);
+size_t file_number_print(FILE *restrict stream, const size_t n, char *restrict const src);
 // Insert n characters from src into dest at index  
 // Termination inserts null terminator into dest at index + n  
 // Returns dest on success and nullptr on failure  
