@@ -42,12 +42,9 @@ The standard error shall be used only for diagnostic messages.
 
 The following exit values shall be returned:
 
-0
-    Program executed successfully.
-0
-    Program exited successfully on user exit request.
->0
-    An error occured
+0 - Program executed successfully.
+0 - Program exited successfully on user exit request.
+\>0 - An error occured
 
 ## Consequenses of errors
 

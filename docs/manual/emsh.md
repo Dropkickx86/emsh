@@ -2,7 +2,7 @@
 
 ## Premise
 
-EMSH is fully compliant with [POSIX.1-2024]<https://pubs.opengroup.org/onlinepubs/9799919799/>. Any part being in conflict with POSIX.1-2024 is unintentional and should be reported to maintainers.
+EMSH is fully compliant with [POSIX.1-2024](https://pubs.opengroup.org/onlinepubs/9799919799/). Any part being in conflict with POSIX.1-2024 is unintentional and should be reported to maintainers.
 
 Parts not described in POSIX.1-2024 are added as standard modules, except when needed to support the integration of modules. No standard modules are in conflict with POSIX.1-2024, and none are vital for operation.
 

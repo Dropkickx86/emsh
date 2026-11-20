@@ -1,6 +1,6 @@
 # cd - cd.c
 
-The implementation of the cd intrinsic utility works as specified in [POSIX.1-2024]<https://pubs.opengroup.org/onlinepubs/9799919799/> unless otherwise specified in this document.
+The implementation of the cd intrinsic utility works as specified in [POSIX.1-2024](https://pubs.opengroup.org/onlinepubs/9799919799/) unless otherwise specified in this document.
 
 ## Description
 
