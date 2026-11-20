@@ -180,7 +180,6 @@ int pwd_update(char *path){
         else {
             if (!oldpwd_value || sh_var_set("OLDPWD", oldpwd_value) == -1){
                 fprintf(stderr, "emsh: cd: could not update OLDPWD\n");
-                return 2;
             }
             if (print_pwd){
                 pwd_print();
@@ -207,6 +206,9 @@ int pwd_update(char *path){
     else {
         if (!oldpwd_value || sh_var_set("OLDPWD", oldpwd_value) == -1){
             fprintf(stderr, "emsh: cd: could not update OLDPWD\n");
+        }
+        if (print_pwd){
+            pwd_print();
         }
     }
     return 0;
