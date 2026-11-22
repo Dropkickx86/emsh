@@ -1,7 +1,7 @@
 include config.mk
 
-SRC = emsh.c helpers.c emgc.c environment.c
-OBJ = emsh.o helpers.o emgc.o environment.o
+SRC = emsh.c helpers.c environment.c nls.c
+OBJ = emsh.o helpers.o environment.o nls.o
 
 GENERAL_SRC = input_read.c platform_init.c program_exec.c
 GENERAL_OBJ = general/input_read.o general/platform_init.o general/program_exec.o
