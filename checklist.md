@@ -85,6 +85,10 @@
   - [ ] Options
   - [ ] Operands
   - [ ] Input Files
+  - [ ] Output files
+    - [ ] File Creation
+    - [ ] File Removal
+    - [ ] File Time Values
   - [ ] Command Line Editing
   - [ ] vi-mode
   - [ ] Asynchronous Events
