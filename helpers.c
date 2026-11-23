@@ -6,6 +6,7 @@
 #include <emgc.h>
 
 #include "helpers.h"
+#include "nls.h"
 
 size_t file_number_print(FILE *restrict stream, const size_t n, char *restrict const src){
     const char index_char = src[n];
@@ -29,11 +30,11 @@ char *string_insert(char *restrict dest, const char *restrict src, const int ind
         dest_len = strlen(dest);
     }
     if (index > dest_len){
-        fprintf(stderr, "emsh: index out of bounds\n");
+        nls_message(3, "emsh: Invalid value for internal function");
         return nullptr;
     }
     if (n > strlen(src)){
-        fprintf(stderr, "emsh: requested length larger than string length\n");
+        nls_message(3, "emsh: Invalid value for internal function");
         return nullptr;
     }
     // Realloc if dest is too small
@@ -80,7 +81,7 @@ char *string_concat(char *dest, const char *const src, unsigned char scope){
 
 char **string_tokenize(char **output, int *out_c, const char *const input, const char *ifs, unsigned char scope){
     if (!output || !out_c || !input || !ifs){
-        fprintf(stderr, "emsh: missing information for tokenization");
+        nls_message(3, "emsh: Invalid value for internal function");
         return nullptr;
     }
     int cursor = 0;

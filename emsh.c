@@ -1,6 +1,9 @@
-/*HEADER*/
+/* EMSH - Extensible Modular SHell
+(c) BSD 3-Clause - 2026 Emil Stenström
+Full license information in LICENSE file*/
 
 // Includes system
+#include <locale.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -10,6 +13,7 @@
 
 // Includes local
 #include "emsh.h"
+#include "nls.h"
 #include "general/general.h"
 
 // Enums
@@ -19,12 +23,22 @@
 // Globals
 
 int init_loop();
+int close_loop();
 int init_program();
 void exit_handler();
 
 // Initialize loop  
 // Returns 0 on success, -1 on failure
 int init_loop(){
+    setlocale(LC_ALL, "");
+    nls_catalog_set("emsh_general");
+    return 0;
+}
+
+// End loop  
+// Returns 0 on success, -1 on failure
+int close_loop(){
+    gc_clean('l');
     return 0;
 }
 
@@ -50,6 +64,7 @@ int init_program(){
 
 // Exit handler
 void exit_handler(){
+    nls_catalog_close();
     gc_end();
 }
 
@@ -63,7 +78,7 @@ void emsh_main(){
         if (!flag.exit && in_c > 0){
             program_exec(in_c, in_v);
         }
-        gc_clean('l');
+        close_loop();
     }
 }
 

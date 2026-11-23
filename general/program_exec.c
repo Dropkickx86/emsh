@@ -10,6 +10,7 @@
 #include "general.h"
 #include "../emsh.h"
 #include "../helpers.h"
+#include "../nls.h"
 #include "../intrinsic/intrinsic.h"
 
 int temp_exit_function(int argc, char **argv){
@@ -82,7 +83,7 @@ char *path_expand(char *arg){
 
 int program_exec(int argc, char **argv){ // "Main" function
     if (argc <= 0 || !argv || !argv[0]){
-        fprintf(stderr, "emsh: exec called with no args\n");
+        nls_message(3, "emsh: Invalid value for internal function");
         return -1;
     }
     int (*cmd)(int, char**) = check_command(argv[0]);
@@ -91,18 +92,18 @@ int program_exec(int argc, char **argv){ // "Main" function
     }
     char *path = path_expand(argv[0]);
     if (strlen(path) == 0){
-        fprintf(stderr, "emsh: %s: not found\n", *argv);
+        nls_message(4, "emsh: Not found");
         return -1;
     }
     pid_t pid = fork();
     if (pid == -1){
-        perror("emsh: could not fork");
+        perror("emsh");
         flag.failure = true;
         return -1;
     }
     if (pid == 0){ //child
         execv(path, (char *const *) argv);
-        perror("emsh: could not exec");
+        perror("emsh");
         _exit(EXIT_FAILURE);
     }
     else { //parent

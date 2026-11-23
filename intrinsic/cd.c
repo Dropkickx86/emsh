@@ -8,6 +8,8 @@
 #include <sys/stat.h>
 
 #include <emgc.h>
+#include "../helpers.h"
+#include "../nls.h"
 
 #include "intrinsic.h"
 #include "../environment.h"
@@ -43,7 +45,7 @@ char *arg_resolve(int in_c, char **in_v){
                     opt_e = true;
                 }
                 else {
-                    fprintf(stderr, "emsh: cd: illegal option -%c\n", in_v[i][j]);
+                    nls_message(2, "cd: Unsupported option");
                     return nullptr;
                 }
             }
@@ -55,7 +57,7 @@ char *arg_resolve(int in_c, char **in_v){
     if (!arg_path){
         const struct ShVar *const home = sh_var_get("HOME");
         if (!home){
-            fprintf(stderr, "emsh: cd: directory not specified\n");
+            nls_message(3, "cd: Directory not specified");
             return nullptr;
         }
         arg_path = string_copy(home->value, 'l');
@@ -63,7 +65,7 @@ char *arg_resolve(int in_c, char **in_v){
     else if (strcmp(arg_path, "-") == 0){
         const struct ShVar *const oldpwd = sh_var_get("OLDPWD");
         if (!oldpwd){
-            fprintf(stderr, "emsh: cd: OLDPWD not set\n");
+            nls_message(4, "cd: OLDPWD not set");
             return nullptr;
         }
         arg_path = string_copy(oldpwd->value, 'l');
@@ -71,10 +73,10 @@ char *arg_resolve(int in_c, char **in_v){
     }
     if (arg_path[0] == '\0'){
         if (print_pwd){
-            fprintf(stderr, "emsh: cd: OLDPWD is empty\n");
+            nls_message(4, "cd: OLDPWD not set");
         }
         else {
-            fprintf(stderr, "emsh: cd: directory not specified\n");
+            nls_message(3, "cd: Directory not specified");
         }
         return nullptr;
     }
@@ -174,12 +176,12 @@ int pwd_update(char *path){
     }
     if (opt != 'P'){
         if (sh_var_set("PWD", path) == -1){
-            fprintf(stderr, "emsh: cd: could not update PWD\n");
+            nls_message(5, "cd: Could not update PWD");
             return 2;
         }
         else {
             if (!oldpwd_value || sh_var_set("OLDPWD", oldpwd_value) == -1){
-                fprintf(stderr, "emsh: cd: could not update OLDPWD\n");
+                nls_message(6, "cd: Could not update OLDPWD");
             }
             if (print_pwd){
                 pwd_print();
@@ -201,11 +203,11 @@ int pwd_update(char *path){
         return 0;
     }
     if (sh_var_set("PWD", cwd) == -1){
-        fprintf(stderr, "emsh: cd: could not update PWD\n");
+        nls_message(5, "cd: Could not update PWD");
     }
     else {
         if (!oldpwd_value || sh_var_set("OLDPWD", oldpwd_value) == -1){
-            fprintf(stderr, "emsh: cd: could not update OLDPWD\n");
+            nls_message(6, "cd: Could not update OLDPWD");
         }
         if (print_pwd){
             pwd_print();
@@ -327,17 +329,18 @@ char *path_canonicalize(char *curpath){
                 }
             }
             if (index_parent == i){
-                fprintf(stderr, "emsh: cd: could not resolve parent directory\n");
+                nls_message(7, "cd: Could not resolve parent directory");
                 return nullptr;
             }
             errno = 0;
             DIR *dir = opendir(tmp);
-            if (errno == ENOENT || errno == ENOTDIR){
-                fprintf(stderr, "emsh: cd: illegal move to parent directory\n");
-                return nullptr;
-            }
-            else if (dir){
+            int errno_save = errno;
+            if (dir){
                 closedir(dir);
+            }
+            if (errno_save == ENOENT || errno_save == ENOTDIR){
+                nls_message(8, "cd: Illegal move to parent directory");
+                return nullptr;
             }
             curpath = string_insert(curpath, curpath + i + 3, index_parent, strlen(curpath + i + 3), true, 'l');
             i = index_parent;
@@ -390,11 +393,12 @@ char *path_relativize(char *curpath){
                 tmp[i] = '\0';
                 errno = 0;
                 dir = opendir(tmp);
-                if (errno == ENOENT || errno == ENOTDIR){
-                    return nullptr;
-                }
-                else if (dir){
+                int errno_save = errno;
+                if (dir){
                     closedir(dir);
+                }
+                if (errno_save == ENOENT || errno_save == ENOTDIR){
+                    return nullptr;
                 }
                 curpath_relative = string_concat(curpath_relative, "../", 'l');
             }
@@ -411,6 +415,7 @@ int cd(int in_c, char **in_v){ // "Main" function
     if (!pwd_validate() || !pwd){
         return 2;
     }
+    nls_catalog_set("emsh_cd");
     char *arg_path = arg_resolve(in_c, in_v);
     if (!arg_path){
         return 2;
@@ -445,7 +450,7 @@ int cd(int in_c, char **in_v){ // "Main" function
         status = chdir(curpath);
     }
     if (status == -1){
-        perror("emsh: cd");
+        perror("cd");
         return 2;
     }
     // Update PWD, OLDPWD

@@ -12,6 +12,7 @@
 
 #include "environment.h"
 #include "helpers.h"
+#include "nls.h"
 
 struct ShVar *shell_vars;
 
@@ -27,7 +28,7 @@ struct ShVar *sh_var_get(const char *name){
 int sh_var_set(const char *name, const char *value){
     struct ShVar *var_cur = sh_var_get(name);
     if (var_cur && var_cur->ro){
-        fprintf(stderr, "emsh: %s: variable is read only", name);
+        nls_message(2, "emsh: Value is readonly");
         return -1;
     }
     if (!var_cur){

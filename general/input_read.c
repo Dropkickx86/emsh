@@ -18,6 +18,7 @@
 #include "../emsh.h"
 #include "../environment.h"
 #include "../helpers.h"
+#include "../nls.h"
 
 // Struct for holding cursor information
 struct Cursor {
@@ -44,7 +45,7 @@ const char *IFS;
 // Returns terminal width in number of columns
 void terminal_get_size(struct winsize *term){
     if (ioctl(STDERR_FILENO, TIOCGWINSZ, term) == -1){
-        perror("emsh: could not get terminal size");
+        perror("emsh");
         term->ws_row = 0;
     }
 }
@@ -99,7 +100,7 @@ void stdin_reprint(struct InBuf *input, struct Cursor *cursor){
 // Returns 0 on success and -1 on failure
 int terminal_set_raw(struct termios *term_cur){
     if (tcgetattr(STDIN_FILENO, term_cur) == -1){
-        perror("emsh: could not get terminal attributes");
+        perror("emsh");
         return -1;
     }
     struct termios term_raw = *term_cur;
@@ -107,7 +108,7 @@ int terminal_set_raw(struct termios *term_cur){
     term_raw.c_cc[VMIN] = 1;
     term_raw.c_cc[VTIME] = 0;
     if (tcsetattr(STDIN_FILENO, TCSANOW, &term_raw) == -1){
-        perror("emsh: could not set terminal attributes");
+        perror("emsh");
         return -1;
     }
     return 0;
@@ -122,7 +123,7 @@ void terminal_restore(const struct termios *term_info){
         char **tmp = gc_malloc('l', 1 * sizeof(char));
         *tmp = string_copy("reset", 'l');
         program_exec(1, tmp);
-        perror("emsh: could not set terminal attributes\n");
+        perror("emsh");
         flag.failure = true;
         return;
     }
@@ -253,7 +254,7 @@ char **input_read_vi(char **in_v, int *in_c){
     // Set up terminal
     struct termios term_info;
     if (terminal_set_raw(&term_info) == -1){
-        fprintf(stderr, "emsh: could not run in vi mode");
+        nls_message(5, "emsh: Chosen input mode could not be started");
         option.vi = false;
         return nullptr;
     }
