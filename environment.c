@@ -16,7 +16,7 @@
 struct ShVar *shell_vars;
 
 struct ShVar *sh_var_get(const char *name){
-    for (int i = 0; strlen(shell_vars[i].name) > 0; i++){
+    for (unsigned int i = 0; strlen(shell_vars[i].name) > 0; i++){
         if (strcmp(name, shell_vars[i].name) == 0){
             return &shell_vars[i];
         }
@@ -57,7 +57,7 @@ int sh_vars_populate(){
     if (!environ){
         return 0;
     }
-    short index = 0;
+    unsigned short index = 0;
     char **name_val = gc_malloc('i', 2 * sizeof(char*));
     if (!name_val){
         return -1;
@@ -65,7 +65,7 @@ int sh_vars_populate(){
     char **environ_local = environ;
     // Read and save environment variables
     while (*environ_local){
-        int token_amount;
+        unsigned int token_amount;
         name_val = string_tokenize(name_val, &token_amount, *environ_local, "=", 'i');
         environ_local++;
         // Check if accepted variable

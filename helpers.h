@@ -24,7 +24,7 @@ size_t file_number_print(FILE *restrict stream, const size_t n, char *restrict c
 // Termination inserts null terminator into dest at index + n  
 // Returns dest on success and nullptr on failure  
 // Realloc if dest is too small, malloc to scope if dest is nullptr
-char *string_insert(char *restrict dest, const char *restrict src, const int index, const size_t n, const bool termination, unsigned char scope);
+char *string_insert(char *restrict dest, const char *restrict src, const unsigned long index, const size_t n, const bool termination, unsigned char scope);
 // Returns pointer containing string src malloc'd to scope, nullptr on failure
 char *string_copy(const char *const src, unsigned char scope);
 // Inserts src at end of dest  
@@ -34,7 +34,7 @@ char *string_concat(char *dest, const char *const src, unsigned char scope);
 // Split input at ifs and put value into output, no tokens in out_c  
 // Returns output on success and nullptr on failure  
 // output must be pre-allocated, but will be reallocated if too small. *output will be allocated to scope if nullptr
-char **string_tokenize(char **output, int *out_c, const char *const input, const char *ifs, unsigned char scope);
+char **string_tokenize(char **output, unsigned int *out_c, const char *const input, const char *ifs, unsigned char scope);
 // Check that PWD exists and hold a valid value  
 // Returns true if value is valid or could be updated to cwd, otherwise returns false
 bool pwd_validate();

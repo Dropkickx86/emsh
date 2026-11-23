@@ -13,7 +13,7 @@
 #include "../nls.h"
 #include "../intrinsic/intrinsic.h"
 
-int temp_exit_function(int argc, char **argv){
+int temp_exit_function(unsigned int argc, char **argv){
     (void) argc;
     (void) argv;
     flag.exit = true;
@@ -37,10 +37,10 @@ fptr check_command(char *cmd){
 // Returns pointer to path for executable arg  
 // Returns nullptr on failure and empty string if executable was not found
 char *path_expand(char *arg){
-    int arg_len = strlen(arg);
+    long arg_len = strlen(arg);
     char *path = nullptr;
     // Check if already path
-    for (int i = arg_len; i >= 0; i--){
+    for (long i = arg_len; i >= 0; i--){
         if (arg[i] == '/'){
             path = string_copy(arg, 'l');
             arg = string_copy(arg + i + 1, 'l');
@@ -50,14 +50,14 @@ char *path_expand(char *arg){
     // Check PATH for executable
     char *env_path = getenv("PATH");
     char **env_path_token = gc_malloc('l', 8 * sizeof(char*));
-    int env_path_c;
+    unsigned int env_path_c;
     env_path_token = string_tokenize(env_path_token, &env_path_c, env_path, ":", 'l');
     if (env_path_c == 0){
         path = gc_malloc('l', sizeof(char));
         path[0] = '\0';
         return path;
     }
-    for (int i = 0; i < env_path_c; i++){
+    for (unsigned int i = 0; i < env_path_c; i++){
         char *fullpath = string_copy(env_path_token[i], 'l');
         if (fullpath[strlen(fullpath) - 1] != '/'){
             string_concat(fullpath, "/", 'l');
@@ -81,12 +81,12 @@ char *path_expand(char *arg){
     return path;
 }
 
-int program_exec(int argc, char **argv){ // "Main" function
+int program_exec(unsigned int argc, char **argv){ // "Main" function
     if (argc <= 0 || !argv || !argv[0]){
         nls_message(3, "emsh: Invalid value for internal function");
         return -1;
     }
-    int (*cmd)(int, char**) = check_command(argv[0]);
+    int (*cmd)(unsigned int, char**) = check_command(argv[0]);
     if (cmd){
         return (*cmd)(argc, argv);
     }

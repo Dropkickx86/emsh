@@ -25,10 +25,10 @@ bool print_pwd;
 
 // Local  
 // Parse given arguments, populate option flags, return directory operand
-char *arg_resolve(int in_c, char **in_v){
+char *arg_resolve(unsigned int in_c, char **in_v){
     char *arg_path = nullptr;
     bool opt_stop = false;
-    for (int i = 1; i < in_c; i++){
+    for (unsigned int i = 1; i < in_c; i++){
         if (!opt_stop && in_v[i][0] == '-' && strlen(in_v[i]) > 1){
             if (strcmp(in_v[i], "--") == 0){
                 opt_stop = true;
@@ -179,9 +179,9 @@ char *cdpath_resolve(char *arg_path){
             }
         }
         char **cdpath_token = gc_malloc('l', 8 * sizeof(char*));
-        int token_amount = 0;
+        unsigned int token_amount = 0;
         cdpath_token = string_tokenize(cdpath_token, &token_amount, cdpath->value, ":", 'l');
-        int index_dotslash = 0;
+        unsigned long index_dotslash = 0;
         bool index_dotslash_found = false;
         for (unsigned long i = 1; i < strlen(cdpath->value) - 1; i++){
             if (cdpath->value[i] == ':'){
@@ -192,7 +192,7 @@ char *cdpath_resolve(char *arg_path){
                 break;
             }
         }
-        for (int i = 0; i < token_amount; i++){
+        for (unsigned int i = 0; i < token_amount; i++){
             if (index_dotslash_found && i == index_dotslash){
                 tmp = dotslash_test(arg_path);
                 if (tmp){
@@ -307,11 +307,12 @@ char *path_relativize(char *curpath){
                 tmp[i] = '\0';
                 errno = 0;
                 dir = opendir(tmp);
-                if (errno == ENOENT || errno == ENOTDIR){
-                    return nullptr;
-                }
-                else if (dir){
+                int errno_save = errno;
+                if (dir){
                     closedir(dir);
+                }
+                if (errno_save == ENOENT || errno_save == ENOTDIR){
+                    return nullptr;
                 }
                 curpath_relative = string_concat(curpath_relative, "../", 'l');
             }
@@ -342,7 +343,7 @@ char *path_relativize(char *curpath){
     return curpath_relative;
 }
 
-int cd(int in_c, char **in_v){ // "Main" function
+int cd(unsigned int in_c, char **in_v){ // "Main" function
     print_pwd = false;
     char *curpath = nullptr;
     char *curpath_relative = nullptr;

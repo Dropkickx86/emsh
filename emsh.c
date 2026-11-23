@@ -72,7 +72,7 @@ void exit_handler(){
 void emsh_main(){
     while (!flag.exit && !flag.failure){
         init_loop();
-        int in_c = 0;
+        unsigned int in_c = 0;
         char **in_v = gc_malloc('l', 4 * sizeof(char*));
         in_v = input_read(in_v, &in_c);
         if (!flag.exit && in_c > 0){

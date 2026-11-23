@@ -20,8 +20,8 @@ size_t file_number_print(FILE *restrict stream, const size_t n, char *restrict c
     return b_written;
 }
 
-char *string_insert(char *restrict dest, const char *restrict src, const int index, const size_t n, const bool termination, unsigned char scope){
-    int dest_len;
+char *string_insert(char *restrict dest, const char *restrict src, const unsigned long index, const size_t n, const bool termination, unsigned char scope){
+    unsigned int dest_len;
     // Malloc if nullptr
     if (!dest){
         dest_len = 0;
@@ -83,17 +83,17 @@ char *string_concat(char *dest, const char *const src, unsigned char scope){
     return string_insert(dest, src, strlen(dest), strlen(src), true, scope);
 }
 
-char **string_tokenize(char **output, int *out_c, const char *const input, const char *ifs, unsigned char scope){
+char **string_tokenize(char **output, unsigned int *out_c, const char *const input, const char *ifs, unsigned char scope){
     if (!output || !out_c || !input || !ifs){
         nls_message(3, "emsh: Invalid value for internal function");
         return nullptr;
     }
-    int cursor = 0;
-    int ss_start = 0;
+    unsigned long cursor = 0;
+    unsigned long ss_start = 0;
     *out_c = 0;
     do {
         char delimiter = 0;
-        for (int i = 0; ifs[i] != '\0'; i++){
+        for (unsigned short i = 0; ifs[i] != '\0'; i++){
             if (input[cursor] == ifs[i]){
                 delimiter = ifs[i];
                 break;

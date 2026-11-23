@@ -19,7 +19,7 @@ void nls_catalog_close(){
     }
 }
 
-void nls_message(int message_number, const char *fallback){
+void nls_message(const unsigned short message_number, const char *fallback){
     if (nls_catalog == (nl_catd)-1){
         fprintf(stderr, "%s\n", fallback);
         return;

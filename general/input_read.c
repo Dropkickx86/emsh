@@ -139,23 +139,23 @@ unsigned int cursor_get_pos(struct Cursor *cursor, unsigned short term_w){
         return 0;
     }
     if (term_w < cursor->col_home || cursor->col_home == 0){
-        short temp_col = strlen(PS1) + 1;
+        unsigned short temp_col = strlen(PS1) + 1;
         while (temp_col > term_w){
             temp_col -= term_w;
         }
         cursor->col_home = temp_col;
     }
     char pos_response[12];
-    int index = 0;
+    unsigned int index = 0;
     fprintf(stderr, "\033[6n");
     do {
         pos_response[index] = getc(stdin);
     } while (pos_response[index++] != 'R');
     pos_response[index--] = '\0';
     unsigned int row = 0;
-    for (int i = index; i > 0; i--){
+    for (unsigned int i = index; i > 0; i--){
         if (pos_response[i] == ';'){
-            for (int j = i; j > 0; j--){
+            for (unsigned int j = i; j > 0; j--){
                 if (pos_response[j] == '['){
                     j++;
                     while (j <= i - 1){
@@ -166,7 +166,7 @@ unsigned int cursor_get_pos(struct Cursor *cursor, unsigned short term_w){
                 }
             }
             i++;
-            int end = strlen(pos_response) - 2;
+            unsigned int end = strlen(pos_response) - 2;
             cursor->col = 0;
             while (i <= end){
                 cursor->col += ((int) pos_response[i] - 48) * pow(10, end - i);
@@ -185,7 +185,7 @@ void terminal_resize_react(struct winsize *term, struct Cursor * cursor, struct 
         flag.failure = true;
         return;
     }
-    long temp_no_chars = input->no_chars;
+    int temp_no_chars = input->no_chars;
     cursor->row = 1;
     unsigned int temp_row_tot = 1;
     temp_no_chars -= (term->ws_col - (cursor->col_home - 1));
@@ -209,7 +209,7 @@ void terminal_resize_react(struct winsize *term, struct Cursor * cursor, struct 
     cursor->row_tot = temp_row_tot;
     unsigned int temp_col = cursor->col_home;
     unsigned int temp_index = 0;
-    short temp_row = 1;
+    unsigned short temp_row = 1;
     while (temp_index < cursor->index){
         temp_col++;
         temp_index++;
@@ -250,7 +250,7 @@ void terminal_signal_set(){
 // Local  
 // Read from terminal char by char  
 // Returns number of arguments and populates in_v with arguments
-char **input_read_vi(char **in_v, int *in_c){
+char **input_read_vi(char **in_v, unsigned int *in_c){
     // Set up terminal
     struct termios term_info;
     if (terminal_set_raw(&term_info) == -1){
@@ -529,7 +529,7 @@ char **input_read_vi(char **in_v, int *in_c){
     return in_v;
 }
 
-char **input_read(char **in_v, int *in_c){ // "Main" function
+char **input_read(char **in_v, unsigned int *in_c){ // "Main" function
     // TODO: add SIGINT handling
     struct ShVar *sh_var_tmp = sh_var_get("PS1");
     if (sh_var_tmp){
