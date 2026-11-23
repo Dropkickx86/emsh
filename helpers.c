@@ -1,10 +1,14 @@
+#include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 #include <emgc.h>
 
+#include "environment.h"
 #include "helpers.h"
 #include "nls.h"
 
@@ -112,4 +116,59 @@ char **string_tokenize(char **output, int *out_c, const char *const input, const
         }
     } while (input[cursor++] != '\0');
     return output;
+}
+
+bool pwd_validate(){
+    const struct ShVar *pwd = sh_var_get("PWD");
+    char *cwd = gc_malloc('l', 16 * sizeof(char));
+    do {
+        cwd = gc_realloc(cwd, gc_get_alloc_size(cwd) * 2);
+        errno = 0;
+        cwd = getcwd(cwd, gc_get_alloc_size(cwd));
+    } while (!cwd && errno == ERANGE);
+    if (!cwd){
+        nls_message(6, "emsh: Could not validate PWD");
+        return false;
+    }
+    else if (!pwd){
+        goto update;
+    }
+    else if (pwd->value && strlen(pwd->value) == 0){
+        goto update;
+    }
+    else {
+        if (pwd->value[0] != '/'){
+            goto update;
+        }
+        for (unsigned long i = 0; i < strlen(pwd->value); i++){
+            if (strncmp(pwd->value + i, "//", 2) == 0 && i > 0){
+                goto update;
+            }
+            else if (strncmp(pwd->value + i, "/./", 3) == 0){
+                goto update;
+            }
+            else if (strncmp(pwd->value + i, "/../", 4) == 0){
+                goto update;
+            }
+        }
+        struct stat s_cwd, s_pwd;
+        if (stat(cwd, &s_cwd) == -1){
+            nls_message(6, "emsh: Could not validate PWD");
+            return false;
+        }
+        else if (stat(pwd->value, &s_pwd) == -1){
+            nls_message(6, "emsh: Could not validate PWD");
+            return false;
+        }
+        else if (s_cwd.st_dev != s_pwd.st_dev || s_cwd.st_ino != s_pwd.st_ino){
+            goto update;
+        }
+    }
+    return true;
+    update:
+    if (sh_var_set("PWD", cwd) == -1){
+        nls_message(6, "emsh: Could not validate PWD");
+        return false;
+    }
+    return true;
 }

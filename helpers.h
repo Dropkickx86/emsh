@@ -35,5 +35,8 @@ char *string_concat(char *dest, const char *const src, unsigned char scope);
 // Returns output on success and nullptr on failure  
 // output must be pre-allocated, but will be reallocated if too small. *output will be allocated to scope if nullptr
 char **string_tokenize(char **output, int *out_c, const char *const input, const char *ifs, unsigned char scope);
+// Check that PWD exists and hold a valid value  
+// Returns true if value is valid or could be updated to cwd, otherwise returns false
+bool pwd_validate();
 
 #endif

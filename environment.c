@@ -1,12 +1,11 @@
-#include <errno.h>
-#include <linux/limits.h>
 #include <math.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <unistd.h>
+#include <linux/limits.h>
+#include <sys/stat.h>
 
 #include <emgc.h>
 
@@ -119,50 +118,5 @@ void sh_vars_init(){
     sh_var_set("PS2", "> ");
     sh_var_set("PS4", "+ ");
     // PWD fill/validate
-    char *cwd = gc_malloc('i', 16 * sizeof(char));
-    do {
-        cwd = gc_realloc(cwd, gc_get_alloc_size(cwd) * 2);
-        errno = 0;
-        cwd = getcwd(cwd, gc_get_alloc_size(cwd));
-    } while (!cwd && errno == ERANGE);
-    struct ShVar *pwd = sh_var_get("PWD");
-    if (!cwd){
-        fprintf(stderr, "emsh: could not get cwd\nvalue of PWD is not verified\n");
-    }
-    else if (pwd && strlen(pwd->value) == 0){
-        sh_var_set("PWD", cwd);
-    }
-    else if (pwd){
-        bool invalid = false;
-        if (pwd->value[0] != '/' || strlen(pwd->value) > PATH_MAX){
-            invalid = true;
-        }
-        if (!invalid){
-            for (int i = 0; i < (int)strlen(pwd->value); i++){
-                if (pwd->value[i] == '.' && pwd->value[i + 1] == '/'){
-                    if ((pwd->value[i - 1] == '.' && pwd->value[i - 2] == '/') || pwd->value[i - 1] == '/'){
-                        invalid = true;
-                        break;
-                    }
-                }
-            }
-        }
-        if (!invalid){
-            struct stat s_cwd, s_pwd;
-            if (stat(cwd, &s_cwd) == -1){
-                fprintf(stderr, "emsh: could not stat cwd\nvalue of PWD is not verified\n");
-            }
-            else if (stat(pwd->value, &s_pwd) == -1){
-                fprintf(stderr, "emsh: could not stat PWD\nvalue of PWD is not verified\n");
-            }
-            else if (s_cwd.st_dev != s_pwd.st_dev || s_cwd.st_ino != s_pwd.st_ino){
-                invalid = true;
-            }
-        }
-        if (invalid){
-            if (sh_var_set("PWD", cwd) == -1){
-                fprintf(stderr, "emsh: could not update PWD\nvalue of PWD is invalid\n");
-            }
-        }
-    }
+    pwd_validate();
 }

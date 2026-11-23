@@ -5,3 +5,4 @@ $set 1
 3 Invalid value for internal function
 4 Not found
 5 Chosen input mode could not be started
+6 Could not validate PWD

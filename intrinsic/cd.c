@@ -87,72 +87,6 @@ char *arg_resolve(int in_c, char **in_v){
 }
 
 // Local  
-// Validate PWD and set global pwd if valid
-bool pwd_validate(){
-    struct ShVar *tmp_pwd = sh_var_get("PWD");
-    char *cwd = gc_malloc('l', 16 * sizeof(char));
-    do {
-        cwd = gc_realloc(cwd, gc_get_alloc_size(cwd) * 2);
-        errno = 0;
-        cwd = getcwd(cwd, gc_get_alloc_size(cwd));
-    } while (!cwd && errno == ERANGE);
-    if (!cwd){
-        fprintf(stderr, "emsh: cd: could not validate PWD\n");
-        return false;
-    }
-    else if (!tmp_pwd){
-        if (sh_var_set("PWD", cwd) == -1){
-            fprintf(stderr, "emsh: cd: PWD unset, could not be created\n");
-            return false;
-        }
-        pwd = sh_var_get("PWD");
-        fprintf(stderr, "emsh: cd: PWD unset, set to current physical path\n");
-        return true;
-    }
-    else if (tmp_pwd->value && strlen(tmp_pwd->value) == 0){
-        goto update;
-    }
-    else {
-        if (tmp_pwd->value[0] != '/'){
-            goto update;
-        }
-        for (unsigned long i = 0; i < strlen(tmp_pwd->value); i++){
-            if (strncmp(tmp_pwd->value + i, "//", 2) == 0 && i > 0){
-                goto update;
-            }
-            else if (strncmp(tmp_pwd->value + i, "/./", 3) == 0){
-                goto update;
-            }
-            else if (strncmp(tmp_pwd->value + i, "/../", 4) == 0){
-                goto update;
-            }
-        }
-        struct stat s_cwd, s_pwd;
-        if (stat(cwd, &s_cwd) == -1){
-            fprintf(stderr, "emsh: could not stat cwd\nvalue of PWD is not verified\n");
-            return false;
-        }
-        else if (stat(tmp_pwd->value, &s_pwd) == -1){
-            fprintf(stderr, "emsh: could not stat PWD\nvalue of PWD is not verified\n");
-            return false;
-        }
-        else if (s_cwd.st_dev != s_pwd.st_dev || s_cwd.st_ino != s_pwd.st_ino){
-            goto update;
-        }
-    }
-    pwd = tmp_pwd;
-    return true;
-    update:
-    if (sh_var_set("PWD", cwd) == -1){
-        fprintf(stderr, "emsh: cd: PWD invalid and could not be corrected\n");
-        return false;
-    }
-    pwd = sh_var_get("PWD");
-    fprintf(stderr, "emsh: cd: PWD invalid, updated to current physical path\n");
-    return true;
-}
-
-// Local  
 // Print value of curpath to stdout  
 // If curpath is nullptr, PWD is printed instead
 void pwd_print(){
@@ -412,7 +346,10 @@ int cd(int in_c, char **in_v){ // "Main" function
     print_pwd = false;
     char *curpath = nullptr;
     char *curpath_relative = nullptr;
-    if (!pwd_validate() || !pwd){
+    if (pwd_validate()){
+        pwd = sh_var_get("PWD");
+    }
+    if (!pwd){
         return 2;
     }
     nls_catalog_set("emsh_cd");

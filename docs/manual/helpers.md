@@ -128,3 +128,19 @@ If an element of {output} is a nullpointer, memory will be allocated in {scope} 
 ### Error information
 
 The function will return a nullpointer on error.
+
+## bool pwd_validate();
+
+Check that shell variable PWD holds a valid value
+
+### Output
+
+The function returns true if PWD holds a valid value and false if it does not.
+
+### Notes on usage
+
+If PWD is not set, or if the value of PWD is invalid, an attemt is made to set PWD with value set to the current working directory.
+
+### Error information
+
+If PWD could not be validated, or if PWD could not be set, the value of PWD is left unaltered.
