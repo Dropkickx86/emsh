@@ -1,0 +1,92 @@
+**This checklist is not exhaustive and will likely be expanded**
+
+- [ ] Shell Command Language
+  - [ ] Quoting
+    - [ ] Escape Character
+    - [ ] Single-Quotes
+    - [ ] Double-Quotes
+    - [ ] Dollar-Single-Quotes
+  - [ ] Token Recognition
+    - [ ] Alias Substitution
+  - [ ] Reserved Words
+  - [ ] Parameters and Variables
+    - [ ] Positional Parameters
+    - [ ] Special Parameters
+    - [ ] Shell Variables
+  - [ ] Word Expansions
+    - [ ] Tilde Expansion
+    - [ ] Parameter Expansion
+    - [ ] Command Substitution
+    - [ ] Arithmetic Expansion
+    - [ ] Field Splitting
+    - [ ] Pathname Expansion
+    - [ ] Quote Removal
+  - [ ] Redirection
+    - [ ] Redirecting Input
+    - [ ] Redirecting Output
+    - [ ] Appending Redirected Output
+    - [ ] Here-Document
+    - [ ] Duplicating an Input File Descriptor
+    - [ ] Duplicating an Output File Descriptor
+    - [ ] Open File Descriptors for Reading and Writing
+  - [ ] Exit Status and Errors
+    - [ ] Consequenses of Shell Errors
+    - [ ] Exit Status for Commands
+  - [ ] Shell Commands
+    - [ ] Simple Commands
+    - [ ] Pipelines
+    - [ ] Lists
+    - [ ] Compound Commands
+    - [ ] Function Definition Command
+  - [ ] Shell Grammar
+    - [ ] Shell Grammar Lexical Conventions
+    - [ ] Shell Grammar Rules
+  - [ ] Job Control
+  - [ ] Shell Execution Environment
+  - [ ] Pattern Matching Notation
+    - [ ] Patterns Matching a Single Character
+    - [ ] Patterns Matching Multiple Characters
+    - [ ] Patterns Used for Filename Expansion
+  - [ ] Special Built-In Utilities
+    - [ ] break
+    - [ ] colon
+    - [ ] continue
+    - [ ] dot
+    - [ ] eval
+    - [ ] exec
+    - [ ] exit
+    - [ ] export
+    - [ ] readonly
+    - [ ] return
+    - [ ] set
+    - [ ] shift
+    - [ ] times
+    - [ ] trap
+    - [ ] unset
+  - [ ] Intrinsic Utilities
+    - [ ] alias
+    - [ ] bg
+    - [x] cd
+    - [ ] command
+    - [ ] fc
+    - [ ] fg
+    - [ ] getopts
+    - [ ] hash
+    - [ ] jobs
+    - [ ] kill
+    - [ ] read
+    - [ ] type
+    - [ ] ulimit
+    - [ ] umask
+    - [ ] unalias
+    - [ ] wait
+  - [ ] Signals and Error Handling
+- [ ] sh
+  - [ ] Options
+  - [ ] Operands
+  - [ ] Input Files
+  - [ ] Command Line Editing
+  - [ ] vi-mode
+  - [ ] Asynchronous Events
+  - [ ] Exit Status
+- [ ] Lua Integration
