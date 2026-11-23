@@ -42,6 +42,7 @@ const char *PS2;
 const char *IFS;
 
 struct InBuf input;
+struct Cursor cursor;
 
 // Local  
 // Returns terminal width in number of columns
@@ -83,17 +84,17 @@ int escape_sequence_parse(char *seq){
 
 // Local  
 // Clear row, write s to screen, move cursor back curs_offset steps
-void stdin_reprint(struct InBuf *input, struct Cursor *cursor){
+void stdin_reprint(){
     curs_home();
     erase_scrfw();
-    fprintf(stderr, "%s", input->buf);
-    if (cursor->col == 1 && cursor->row > 1){
+    fprintf(stderr, "%s", input.buf);
+    if (cursor.col == 1 && cursor.row > 1){
         fprintf(stderr, "\n");
     }
-    if (cursor->row != cursor->row_tot){
-        curs_up(cursor->row_tot - cursor->row);
+    if (cursor.row != cursor.row_tot){
+        curs_up(cursor.row_tot - cursor.row);
     }
-    curs_goto_col(cursor->col);
+    curs_goto_col(cursor.col);
 }
 
 // Local  
@@ -135,17 +136,20 @@ void terminal_restore(const struct termios *term_info){
 // Local  
 // Get cursor position  
 // Updates col in cursor, returns row
-unsigned int cursor_get_pos(struct Cursor *cursor, unsigned short term_w){
+unsigned int cursor_get_pos(struct Cursor *cursor_local, unsigned short term_w){
+    if (!cursor_local){
+        cursor_local = &cursor;        
+    }
     if (term_w == 0){
-        cursor->row = 0;
+        cursor_local->row = 0;
         return 0;
     }
-    if (term_w < cursor->col_home || cursor->col_home == 0){
+    if (term_w < cursor_local->col_home || cursor_local->col_home == 0){
         unsigned short temp_col = strlen(PS1) + 1;
         while (temp_col > term_w){
             temp_col -= term_w;
         }
-        cursor->col_home = temp_col;
+        cursor_local->col_home = temp_col;
     }
     char pos_response[12];
     unsigned int index = 0;
@@ -169,9 +173,9 @@ unsigned int cursor_get_pos(struct Cursor *cursor, unsigned short term_w){
             }
             i++;
             unsigned int end = strlen(pos_response) - 2;
-            cursor->col = 0;
+            cursor_local->col = 0;
             while (i <= end){
-                cursor->col += ((int) pos_response[i] - 48) * pow(10, end - i);
+                cursor_local->col += ((int) pos_response[i] - 48) * pow(10, end - i);
                 i++;
             }
             break;
@@ -182,21 +186,21 @@ unsigned int cursor_get_pos(struct Cursor *cursor, unsigned short term_w){
 
 // Local
 // Handler for when the terminal is resized
-void terminal_resize_react(struct winsize *term, struct Cursor * cursor, struct InBuf *input){
-    if (term->ws_row == 0 || cursor->row == 0){
+void terminal_resize_react(struct winsize *term){
+    if (term->ws_row == 0 || cursor.row == 0){
         flag.failure = true;
         return;
     }
-    int temp_no_chars = input->no_chars;
-    cursor->row = 1;
+    int temp_no_chars = input.no_chars;
+    cursor.row = 1;
     unsigned int temp_row_tot = 1;
-    temp_no_chars -= (term->ws_col - (cursor->col_home - 1));
+    temp_no_chars -= (term->ws_col - (cursor.col_home - 1));
     while (temp_no_chars >= 0){
         temp_row_tot++;
         temp_no_chars -= term->ws_col;
     }
-    unsigned int row_real = cursor_get_pos(cursor, term->ws_col);
-    for (unsigned int i = cursor->row_tot; i < temp_row_tot; i++){
+    unsigned int row_real = cursor_get_pos(nullptr, term->ws_col);
+    for (unsigned int i = cursor.row_tot; i < temp_row_tot; i++){
         if (row_real == term->ws_row){
             fprintf(stderr, "\n");
         }
@@ -205,17 +209,17 @@ void terminal_resize_react(struct winsize *term, struct Cursor * cursor, struct 
             row_real++;
         }
     }
-    for (unsigned int i = cursor->row_tot; i > temp_row_tot; i--){
+    for (unsigned int i = cursor.row_tot; i > temp_row_tot; i--){
         curs_up(1);
     }
-    cursor->row_tot = temp_row_tot;
-    unsigned int temp_col = cursor->col_home;
+    cursor.row_tot = temp_row_tot;
+    unsigned int temp_col = cursor.col_home;
     unsigned int temp_index = 0;
     unsigned short temp_row = 1;
-    while (temp_index < cursor->index){
+    while (temp_index < cursor.index){
         temp_col++;
         temp_index++;
-        while (((unsigned char) input->buf[cursor->index] & 0xC0) == 0x80){
+        while (((unsigned char) input.buf[cursor.index] & 0xC0) == 0x80){
             temp_index++;
         }
         if (temp_col > term->ws_col){
@@ -223,14 +227,45 @@ void terminal_resize_react(struct winsize *term, struct Cursor * cursor, struct 
             temp_row++;
         }
     }
-    cursor->row = temp_row;
-    cursor->col = temp_col;
-    if (cursor->row > 1){
-        curs_up(cursor->row - 1);
+    cursor.row = temp_row;
+    cursor.col = temp_col;
+    if (cursor.row > 1){
+        curs_up(cursor.row - 1);
     }
-    curs_goto_col(cursor->col_home);
+    curs_goto_col(cursor.col_home);
     curs_save();
-    stdin_reprint(input, cursor);
+    stdin_reprint();
+}
+
+// Local  
+// Initialize input buffer
+void inbuf_init(){
+    input.buf_size = 64;
+    input.buf_len = 0;
+    input.no_chars = 0;
+    input.buf = gc_malloc('l', input.buf_size * sizeof(char));
+    input.buf[0] = '\0';
+}
+
+// Local  
+// Initializer cursor
+void cursor_init(){
+    struct winsize term;
+    terminal_get_size(&term);
+    if (term.ws_row == 0){
+        flag.failure = true;
+        return;
+    }
+    cursor.col = 0;
+    cursor.col_home = 0;
+    cursor.index = 0;
+    cursor.row = 1;
+    cursor.row_tot = 1;
+    (void) cursor_get_pos(nullptr, term.ws_col);
+    if (cursor.row == 0){
+        flag.failure = true;
+        return;
+    }
 }
 
 // Local  
@@ -263,6 +298,7 @@ char **input_read_vi(char **in_v, unsigned int *in_c){
     terminal_signal_set();
 
     // Init
+    cursor_init();
     struct winsize term;
     terminal_get_size(&term);
     if (term.ws_row == 0){
@@ -270,11 +306,6 @@ char **input_read_vi(char **in_v, unsigned int *in_c){
     }
     if (PS1){
         fprintf(stderr, "%s", PS1);
-    }
-    struct Cursor cursor = {.col = 0, .col_home = 0, .index = 0, .row = 1, .row_tot = 1};
-    (void) cursor_get_pos(&cursor, term.ws_col);
-    if (cursor.row == 0){
-        flag.failure = true;
     }
     char c;
     bool insert_mode = false;
@@ -309,7 +340,7 @@ char **input_read_vi(char **in_v, unsigned int *in_c){
                 clearerr(stdin);
                 if (resized){
                     terminal_get_size(&term);
-                    terminal_resize_react(&term, &cursor, &input);
+                    terminal_resize_react(&term);
                 }
                 break;
             }
@@ -446,7 +477,7 @@ char **input_read_vi(char **in_v, unsigned int *in_c){
             if (((input.no_chars + cursor.col_home - 1) / term.ws_col) + 1 < cursor.row_tot){
                 cursor.row_tot--;
             }
-            stdin_reprint(&input, &cursor);
+            stdin_reprint();
             break;
         default:
             in_char_buf_len = strlen(in_char_buf);
@@ -506,7 +537,7 @@ char **input_read_vi(char **in_v, unsigned int *in_c){
             }
             // Reprint if not at end of input string
             if (cursor.index != input.buf_len){
-                stdin_reprint(&input, &cursor);
+                stdin_reprint();
             }
         }
     }
@@ -542,11 +573,7 @@ char **input_read(char **in_v, unsigned int *in_c){ // "Main" function
     if (sh_var_tmp){
         IFS = string_copy(sh_var_tmp->value, 'l');
     }
-    input.buf_size = 64;
-    input.buf_len = 0;
-    input.no_chars = 0;
-    input.buf = gc_malloc('l', input.buf_size * sizeof(char));
-    input.buf[0] = '\0';
+    inbuf_init();
     if (option.vi){
         return input_read_vi(in_v, in_c);
     }
