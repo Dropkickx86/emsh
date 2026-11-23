@@ -41,6 +41,8 @@ const char *PS1;
 const char *PS2;
 const char *IFS;
 
+struct InBuf input;
+
 // Local  
 // Returns terminal width in number of columns
 void terminal_get_size(struct winsize *term){
@@ -261,9 +263,6 @@ char **input_read_vi(char **in_v, unsigned int *in_c){
     terminal_signal_set();
 
     // Init
-    struct InBuf input = {.buf_size = 64, .buf_len = 0, .no_chars = 0, .buf = nullptr};
-    input.buf = gc_malloc('l', input.buf_size * sizeof(char));
-    input.buf[0] = '\0';
     struct winsize term;
     terminal_get_size(&term);
     if (term.ws_row == 0){
@@ -543,31 +542,35 @@ char **input_read(char **in_v, unsigned int *in_c){ // "Main" function
     if (sh_var_tmp){
         IFS = string_copy(sh_var_tmp->value, 'l');
     }
+    input.buf_size = 64;
+    input.buf_len = 0;
+    input.no_chars = 0;
+    input.buf = gc_malloc('l', input.buf_size * sizeof(char));
+    input.buf[0] = '\0';
     if (option.vi){
         return input_read_vi(in_v, in_c);
     }
-    char *input = gc_malloc('l', 64 * sizeof(char));
-    input[0] = '\0';
     char tmp[64];
     if (PS1){
         fprintf(stderr, "%s", PS1);
     }
     do {
         fgets(tmp, 64, stdin);
-        input = string_concat(input, tmp, 'l');
-    } while (strlen(input) > 0 && input[strlen(input) - 1] != '\n');
-    if (strlen(input) == 0){
-        input[0] = '\n';
-        input[1] = '\0';
+        input.buf = string_concat(input.buf, tmp, 'l');
+    } while (strlen(input.buf) > 0 && input.buf[strlen(input.buf) - 1] != '\n');
+    if (strlen(input.buf) == 0){
+        input.buf[0] = '\n';
+        input.buf[1] = '\0';
     }
-    while(input[strlen(input) - 1] == '\n' || input[strlen(input) - 1] == '\r' || input[strlen(input) - 1] == EOF){
-        input[strlen(input) - 1] = '\0';
+    input.buf_len = strlen(input.buf);
+    while(input.buf[input.buf_len - 1] == '\n' || input.buf[input.buf_len - 1] == '\r' || input.buf[input.buf_len - 1] == EOF){
+        input.buf[input.buf_len - 1] = '\0';
     }
     if (IFS){
-        in_v = string_tokenize(in_v, in_c, input, IFS, 'l');
+        in_v = string_tokenize(in_v, in_c, input.buf, IFS, 'l');
     }
     else {
-        in_v = string_tokenize(in_v, in_c, input, " \t\n", 'l');
+        in_v = string_tokenize(in_v, in_c, input.buf, " \t\n", 'l');
     }
     in_v[*in_c] = nullptr;
     return in_v;
