@@ -36,8 +36,6 @@ If the directory operand consists of a single '-' (\<hyphen-minus>) character, t
 
 ## Environment variables
 
-Usage of localization environment variables is not implemented and will be revisited later.
-
 > OLDPWD
 >
 >> **If an application sets or unsets the value of OLDPWD , the behavior of cd with a '-' operand is unspecified.**
