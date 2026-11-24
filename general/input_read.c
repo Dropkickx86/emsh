@@ -107,7 +107,7 @@ int terminal_set_raw(struct termios *term_cur){
         return -1;
     }
     struct termios term_raw = *term_cur;
-    term_raw.c_lflag &= ~(ICANON | ECHO | ISIG);
+    term_raw.c_lflag &= ~(ICANON | ECHO);
     term_raw.c_cc[VMIN] = 1;
     term_raw.c_cc[VTIME] = 0;
     if (tcsetattr(STDIN_FILENO, TCSANOW, &term_raw) == -1){
@@ -306,11 +306,10 @@ char **input_read_vi(char **in_v, unsigned int *in_c){
     }
     char c;
     bool insert_mode = false;
-    bool sigint = false;
     curs_save();
 
     // Read loop
-    while (!flag.failure && !sigint && (c = getc(stdin)) != '\n'){
+    while (!flag.failure && !flag.sigint && (c = getc(stdin)) != '\n'){
         // Handle input char
         char in_char_buf[16] = {'\0'};
         in_char_buf[0] = c;
@@ -343,16 +342,6 @@ char **input_read_vi(char **in_v, unsigned int *in_c){
                 break;
             }
             // TODO: Actual EOF handling
-            break;
-        case '\034': // SIGQUIT
-            // TODO: SIGQUIT and SIGTERM shall be ignored by POSIX.1-2024
-            flag.exit = true;
-            // fall through
-        case '\003': // SIGINT
-            input.buf[0] = '\0';
-            input.buf_len = 0;
-            input.no_chars = 0;
-            sigint = true;
             break;
         case '\033': // Escape sequence
             switch (escape_sequence_parse(in_char_buf)){
@@ -539,6 +528,9 @@ char **input_read_vi(char **in_v, unsigned int *in_c){
             }
         }
     }
+    if (flag.sigint){
+        input.buf_len = 0;
+    }
     input.buf[input.buf_len] = '\0';
     fprintf(stderr, "\n");
 
@@ -586,8 +578,8 @@ char **input_read(char **in_v, unsigned int *in_c){ // "Main" function
     do {
         fgets(tmp, 64, stdin);
         input.buf = string_concat(input.buf, tmp, 'l');
-    } while (strlen(input.buf) > 0 && input.buf[strlen(input.buf) - 1] != '\n');
-    if (strlen(input.buf) == 0){
+    } while (!flag.sigint && strlen(input.buf) > 0 && input.buf[strlen(input.buf) - 1] != '\n');
+    if (strlen(input.buf) == 0 || flag.sigint){
         input.buf[0] = '\n';
         input.buf[1] = '\0';
     }

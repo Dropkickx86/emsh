@@ -9,6 +9,7 @@
 
 #include "general.h"
 #include "../emsh.h"
+#include "../environment.h"
 #include "../helpers.h"
 #include "../nls.h"
 #include "../intrinsic/intrinsic.h"
@@ -102,6 +103,8 @@ int program_exec(unsigned int argc, char **argv){ // "Main" function
         return -1;
     }
     if (pid == 0){ //child
+        nls_catalog_close();
+        signals_restore();
         execv(path, (char *const *) argv);
         perror("emsh");
         _exit(EXIT_FAILURE);

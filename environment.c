@@ -1,4 +1,5 @@
 #include <math.h>
+#include <signal.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,10 +11,12 @@
 #include <emgc.h>
 
 #include "environment.h"
+#include "emsh.h"
 #include "helpers.h"
 #include "nls.h"
 
-struct ShVar *shell_vars;
+static struct ShVar *shell_vars;
+static int *ignored_signals = nullptr;
 
 struct ShVar *sh_var_get(const char *name){
     for (unsigned int i = 0; strlen(shell_vars[i].name) > 0; i++){
@@ -119,4 +122,76 @@ void sh_vars_init(){
     sh_var_set("PS4", "+ ");
     // PWD fill/validate
     pwd_validate();
+}
+
+void signal_ignore(int signal){
+    if (!ignored_signals){
+        ignored_signals = gc_malloc('p', 8 * sizeof(int*));
+    }
+    else {
+        ignored_signals = gc_realloc(ignored_signals, gc_get_alloc_size(ignored_signals) * 2);
+    }
+    for (unsigned int i = 0; i < gc_get_alloc_size(ignored_signals); i++){
+        if (ignored_signals[i] == 0){
+            ignored_signals[i] = signal;
+            break;
+        }
+    }
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_IGN;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    if (sigaction(signal, &sa, NULL) == -1){
+        flag.failure = true;
+    }
+}
+
+void on_sigint(int sig){
+    (void)sig;
+    flag.sigint = true;
+}
+void sigint_handling(){
+    if (!ignored_signals){
+        ignored_signals = gc_malloc('p', 8 * sizeof(int*));
+    }
+    else {
+        ignored_signals = gc_realloc(ignored_signals, gc_get_alloc_size(ignored_signals) * 2);
+    }
+    for (unsigned int i = 0; i < gc_get_alloc_size(ignored_signals); i++){
+        if (ignored_signals[i] == 0){
+            ignored_signals[i] = SIGINT;
+            break;
+        }
+    }
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = on_sigint;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    if (sigaction(SIGINT, &sa, NULL) == -1){
+        flag.failure = true;
+    }
+}
+
+void signals_restore(){
+    if (!ignored_signals){
+        return;
+    }
+    unsigned int index = 0;
+    for (unsigned int i = 0; i < gc_get_alloc_size(ignored_signals); i++){
+        if (ignored_signals[i] == 0){
+            index = i - 1;
+            break;
+        }
+    }
+    struct sigaction sa;
+    do {
+        memset(&sa, 0, sizeof(sa));
+        sa.sa_handler = SIG_DFL;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = 0;
+        sigaction(ignored_signals[index], &sa, NULL);
+        ignored_signals[index] = 0;
+    } while (index-- > 0);
 }

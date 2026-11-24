@@ -1,6 +1,8 @@
-/* EMSH - Extensible Modular SHell
+/*
+EMSH - Extensible Modular SHell
 (c) BSD 3-Clause - 2026 Emil Stenström
-Full license information in LICENSE file*/
+Full license information in LICENSE file
+*/
 
 // Includes system
 #include <locale.h>
@@ -13,6 +15,7 @@ Full license information in LICENSE file*/
 
 // Includes local
 #include "emsh.h"
+#include "environment.h"
 #include "nls.h"
 #include "general/general.h"
 
@@ -32,6 +35,7 @@ void exit_handler();
 int init_loop(){
     setlocale(LC_ALL, "");
     nls_catalog_set("emsh_general");
+    flag.sigint = false;
     return 0;
 }
 
@@ -65,6 +69,7 @@ int init_program(){
 // Exit handler
 void exit_handler(){
     nls_catalog_close();
+    signals_restore();
     gc_end();
 }
 
@@ -84,6 +89,8 @@ void emsh_main(){
 
 // Launch emsh
 int main(){
+    // TODO: remove hardcoding when argument handling is implemented
+    option.interactive = true;
     if (init_program() == -1){
         flag.failure = true;
     }
