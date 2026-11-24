@@ -338,6 +338,7 @@ char **input_read_vi(char **in_v, unsigned int *in_c){
                 if (resized){
                     terminal_get_size(&term);
                     terminal_resize_react(&term);
+                    resized = 0;
                 }
                 break;
             }
