@@ -304,9 +304,6 @@ char **input_read_vi(char **in_v, unsigned int *in_c){
     if (term.ws_row == 0){
         flag.failure = true;
     }
-    if (PS1){
-        fprintf(stderr, "%s", PS1);
-    }
     char c;
     bool insert_mode = false;
     bool sigint = false;
@@ -560,7 +557,7 @@ char **input_read_vi(char **in_v, unsigned int *in_c){
 }
 
 char **input_read(char **in_v, unsigned int *in_c){ // "Main" function
-    // TODO: add SIGINT handling
+    // Init
     struct ShVar *sh_var_tmp = sh_var_get("PS1");
     if (sh_var_tmp){
         PS1 = string_copy(sh_var_tmp->value, 'l');
@@ -574,13 +571,17 @@ char **input_read(char **in_v, unsigned int *in_c){ // "Main" function
         IFS = string_copy(sh_var_tmp->value, 'l');
     }
     inbuf_init();
-    if (option.vi){
-        return input_read_vi(in_v, in_c);
-    }
-    char tmp[64];
     if (PS1){
         fprintf(stderr, "%s", PS1);
     }
+
+    // vi-mode if enabled
+    if (option.vi){
+        return input_read_vi(in_v, in_c);
+    }
+
+    // Read input
+    char tmp[64];
     do {
         fgets(tmp, 64, stdin);
         input.buf = string_concat(input.buf, tmp, 'l');
@@ -593,6 +594,8 @@ char **input_read(char **in_v, unsigned int *in_c){ // "Main" function
     while(input.buf[input.buf_len - 1] == '\n' || input.buf[input.buf_len - 1] == '\r' || input.buf[input.buf_len - 1] == EOF){
         input.buf[input.buf_len - 1] = '\0';
     }
+
+    // Tokenize and return
     if (IFS){
         in_v = string_tokenize(in_v, in_c, input.buf, IFS, 'l');
     }
