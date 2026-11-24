@@ -1,7 +1,7 @@
 #include <errno.h>
+#include <limits.h>
 #include <math.h>
 #include <signal.h>
-#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -319,7 +319,7 @@ char **input_read_vi(char **in_v, unsigned int *in_c){
                 in_char_buf[strlen(in_char_buf)] = getc(stdin);
             }
         }
-        else if (in_char_buf[0] >= '\xC2' && in_char_buf[0] <= '\xFF'){ // UTF-8
+        else if (in_char_buf[0] >= '\xC2' && in_char_buf[0] <= '\xF4'){ // UTF-8
             in_char_buf[strlen(in_char_buf)] = getc(stdin);
             if (in_char_buf[0] >= '\xE0'){
                 in_char_buf[strlen(in_char_buf)] = getc(stdin);
